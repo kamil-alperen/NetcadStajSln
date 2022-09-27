@@ -1,6 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using App.Data.Context;
 using App.Business.Services;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using NetTopologySuite.Geometries;
+using NetTopologySuite.IO.Converters;
+using NetTopologySuite;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +23,23 @@ builder.Services.AddSwaggerGen();
 
 //add services
 builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<PlaceService>();
+builder.Services.AddScoped<CountryService>();
+builder.Services.AddScoped<LoginService>();
+builder.Services.AddScoped<LicenseService>();
+
+builder.Services.AddControllers(options =>
+{
+    options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(Polygon)));
+});
+
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    var geoJsonConverterFactory = new GeoJsonConverterFactory();
+    options.JsonSerializerOptions.Converters.Add(geoJsonConverterFactory);
+});
+
+builder.Services.AddSingleton(NtsGeometryServices.Instance);
 
 var app = builder.Build();
 
